@@ -1,16 +1,17 @@
 import { createClient } from "@sanity/client";
 
-function mustGetEnv(name: string) {
-  const v = process.env[name];
-  if (!v) throw new Error(`Missing env: ${name}`);
-  return v;
-}
+const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID;
+const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET;
+const apiVersion = process.env.NEXT_PUBLIC_SANITY_API_VERSION || "2024-01-01";
+
+if (!projectId) throw new Error("Missing env: NEXT_PUBLIC_SANITY_PROJECT_ID");
+if (!dataset) throw new Error("Missing env: NEXT_PUBLIC_SANITY_DATASET");
 
 export function getSanityClient() {
   return createClient({
-    projectId: mustGetEnv("NEXT_PUBLIC_SANITY_PROJECT_ID"),
-    dataset: mustGetEnv("NEXT_PUBLIC_SANITY_DATASET"),
-    apiVersion: mustGetEnv("NEXT_PUBLIC_SANITY_API_VERSION"),
+    projectId,
+    dataset,
+    apiVersion,
     useCdn: true,
   });
 }

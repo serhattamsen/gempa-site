@@ -1,32 +1,40 @@
 import { NextRequest, NextResponse } from "next/server";
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidatePath } from "next/cache";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+function checkSecret(req: NextRequest) {
+  const secret = req.nextUrl.searchParams.get("secret");
+  return secret && secret === process.env.REVALIDATE_SECRET;
+}
+
+// DEBUG: Tarayıcıdan test edebilmek için GET ekledik
+export async function GET(req: NextRequest) {
+  if (!checkSecret(req)) {
+    return NextResponse.json({ ok: false, message: "Invalid secret" }, { status: 401 });
+  }
+  return NextResponse.json({ ok: true, method: "GET", envHasSecret: !!process.env.REVALIDATE_SECRET });
+}
 
 export async function POST(req: NextRequest) {
-  const secret = req.nextUrl.searchParams.get("secret");
-  if (!secret || secret !== process.env.REVALIDATE_SECRET) {
+  if (!checkSecret(req)) {
     return NextResponse.json({ ok: false, message: "Invalid secret" }, { status: 401 });
   }
 
-  // Sanity webhook body (istersen kullanırsın)
   let body: any = {};
-  try {
-    body = await req.json();
-  } catch {}
+  try { body = await req.json(); } catch {}
 
-  // En güvenlisi: en azından ana sayfaları revalidate et
   revalidatePath("/");
   revalidatePath("/hakkimizda");
   revalidatePath("/iletisim");
 
-  // Eğer blog / slug sayfaların varsa ve tag kullandıysan:
-  // revalidateTag("sanity");
-
-  // Eğer body’den slug gelirse onu da revalidate edelim (opsiyonel)
   const slug = body?.slug?.current || body?.slug;
   if (slug) revalidatePath(`/${slug}`);
 
   return NextResponse.json({
     ok: true,
+    method: "POST",
     revalidated: true,
     now: Date.now(),
     receivedSlug: slug ?? null,

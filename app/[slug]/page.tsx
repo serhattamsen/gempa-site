@@ -1,5 +1,5 @@
-import { client } from '@/lib/sanity'
-import Blocks from '../../components/Blocks'
+import { getSanityClient } from "@/lib/sanity";
+const client = getSanityClient();
 
 export default async function Page({
   params,

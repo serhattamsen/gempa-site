@@ -1,3 +1,4 @@
+import Blocks from "@/components/Blocks";
 import { getSanityClient } from "@/lib/sanity";
 const client = getSanityClient();
 
